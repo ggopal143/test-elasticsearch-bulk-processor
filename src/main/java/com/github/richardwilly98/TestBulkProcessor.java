@@ -32,14 +32,17 @@ public class TestBulkProcessor {
 	private static final String INDEX_NAME = "dummy-"
 			+ System.currentTimeMillis();
 	private static final String TYPE_NAME = "my-type";
-	private static final long MAX = 10000;
+	private static final long MAX = 1000000;
 
+	private long indexedDocumentCount = 0;
 	public TestBulkProcessor(TransportClient client) {
 		this.client = client;
 		this.bulkProcessor = BulkProcessor.builder(client, listener)
 				.setBulkActions(DEFAULT_BULK_ACTIONS)
 				.setConcurrentRequests(8)
-				.setFlushInterval(DEFAULT_FLUSH_INTERVAL).setBulkSize(DEFAULT_BULK_SIZE).build();
+//				.setFlushInterval(DEFAULT_FLUSH_INTERVAL)
+				.setBulkSize(DEFAULT_BULK_SIZE)
+				.build();
 	}
 
 	public static void main(String[] args) {
@@ -66,6 +69,8 @@ public class TestBulkProcessor {
 						.source(XContentFactory.jsonBuilder().map(data)));
 			}
 			bulkProcessor.close();
+			Thread.sleep(10000);
+			logger.info("Number of documents indexed from afterBulk: {}", indexedDocumentCount);
 			client.admin().indices().prepareRefresh(INDEX_NAME).get();
 			long count = client.prepareCount(INDEX_NAME).get().getCount();
 			logger.info("Number of documents: {} in index {}", count,
@@ -81,19 +86,16 @@ public class TestBulkProcessor {
 	private final BulkProcessor.Listener listener = new BulkProcessor.Listener() {
 
 		public void beforeBulk(long executionId, BulkRequest request) {
-			// TODO Auto-generated method stub
-
 		}
 
 		public void afterBulk(long executionId, BulkRequest request,
 				Throwable failure) {
-			// TODO Auto-generated method stub
-
+			throw new RuntimeException(failure);
 		}
 
 		public void afterBulk(long executionId, BulkRequest request,
 				BulkResponse response) {
-			// TODO Auto-generated method stub
+			indexedDocumentCount += response.getItems().length;
 
 		}
 	};
