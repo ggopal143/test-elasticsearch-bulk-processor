@@ -12,7 +12,6 @@
 			<groupId>org.elasticsearch</groupId>
 			<artifactId>elasticsearch</artifactId>
 			<version>${elasticsearch.version}</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
